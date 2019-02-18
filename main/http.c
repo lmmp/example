@@ -24,6 +24,7 @@
 #define PORT 80
 
 #define CONFIG_EXAMPLE_IPV4
+#define GPIO_OUTPUT_IO_0    2
 
 static const char *TAG = "tcp";
 extern EventGroupHandle_t wifi_event_group;
@@ -40,11 +41,31 @@ char *pn="<!DOCTYPE HTML>"
          "</style>"
          "</head>"
          "<body>"
-         "<h1>This is a test.</h1>"
-         "<a href=http://www.w3cschool.cn>Visit  www.w3cschool.cn</a>"
+         "<h1>This is test.</h1>"
+         "<button onclick=\"startg()\">LED_ON</button>" 
+         "<br />"
+		 "<button onclick=\"ttest()\">LED_OFF</button>"
+         "<br />"
+         "<br />"
+        // "<a href=http://www.w3cschool.cn>Visit  www.w3cschool.cn</a>"
+         "<script>"
+         "function startg()"
+         "{"
+         "var xmlhttp=XMLHttpRequest();"
+         "xmlhttp.open(\"GET\",\"\\LED_ON\",true);"
+         "xmlhttp.send(null);"
+         "}"
+         "function ttest()"
+         "{"
+         "var xmlhttp=XMLHttpRequest();"
+         "xmlhttp.open(\"GET\",\"LED_OFF\",true);"
+         "xmlhttp.send(null);"
+         "}"
+         "</script>"
          "</body>"
          "</html>";
 
+         
 void wait_for_tip()
 {
 
@@ -149,9 +170,20 @@ void http_sub_task(void *pvParameters )
             rx_buffer[len] = 0; // Null-terminate whatever we received and treat like a string
             ESP_LOGI(TAG, "Received %d bytes from %s:", len, addr_str);
             ESP_LOGI(TAG, "%s", rx_buffer);
+
+            if(rx_buffer[10] == 'N')
+            {
+                gpio_set_level(GPIO_OUTPUT_IO_0, 0);
+            }
+
+            else if(rx_buffer[10] == 'F')
+            {
+                gpio_set_level(GPIO_OUTPUT_IO_0, 1);
+            }
             
             int err = send(sock, buff, length, 0);
-            if (err < 0) {
+            if (err < 0) 
+            {
                 ESP_LOGE(TAG, "Error occured during sending: errno %d", errno);
                 break;
             }
